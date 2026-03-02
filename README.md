@@ -5,14 +5,14 @@ This project aims to bring the full OpenRocket experience to the web: rocket des
 
 ---
 
-#Overview
+# Overview
 
 Openrocket‑Web is a web application that recreates the core workflow of OpenRocket v24 using a modern frontend and a backend powered by OpenRocket‑core.
 The goal is to provide a clean, responsive, OpenRocket‑like interface that works on desktop and tablets (including iPad), while maintaining full compatibility with .ork files.
 
 ---
 
-#Features
+# Features
 
 Rocket Design
 
@@ -47,7 +47,7 @@ File Compatibility
 
 ---
 
-#Repository Structure
+# Repository Structure
 
 rocket-web/
  ├── backend/              # Java backend using OpenRocket-core
@@ -70,7 +70,7 @@ rocket-web/
 
 ---
 
-#Technology Stack
+# Technology Stack
 
 Frontend
 
@@ -90,7 +90,7 @@ Backend
 
 ---
 
-#How It Works
+# How It Works
 
 1. The frontend handles:
 
@@ -113,14 +113,14 @@ Backend
 
 ---
 
-#License
+# License
 
 This project is licensed under the GNU General Public License v3 (GPLv3).
 Because OpenRocket and OpenRocket‑core are GPLv3, any derivative work — including this web implementation — must also be released under GPLv3.
 
 ---
 
-#Project Goals
+# Project Goals
 
 • Recreate the OpenRocket v24 workflow in a modern web environment
 • Provide a clean, single‑screen, OpenRocket‑style UI
@@ -131,21 +131,21 @@ Because OpenRocket and OpenRocket‑core are GPLv3, any derivative work — incl
 
 ---
 
-#Status
+# Status
 
 This project is currently in early development.
 Contributions, discussions, and feedback are welcome.
 
 ---
 
-#Contributing
+# Contributing
 
 Pull requests and issue reports are encouraged.
 Please check the docs/ folder for architecture and API specifications before contributing.
 
 ---
 
-#Acknowledgements
+# Acknowledgements
 
 This project is not affiliated with the official OpenRocket team.
 OpenRocket is an open‑source project licensed under GPLv3.
