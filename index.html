@@ -14,21 +14,48 @@
             --swing-header-bg: #e0e0e0;
             --highlight-blue: #3399ff;
             --text-main: #000000;
+            --menu-height: 24px;
+            --tab-height: 28px;
+            --status-height: 24px;
         }
 
         body, html {
             height: 100%;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* 全体のスクロールを禁止 */
             font-family: 'Lucida Grande', 'Segoe UI', sans-serif;
             font-size: 11px;
             background-color: var(--swing-bg);
             color: var(--text-main);
         }
 
+        /* Windows-style Menu Bar */
+        .menu-bar {
+            height: var(--menu-height);
+            background: var(--swing-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            border-bottom: 1px solid #ccc;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .menu-item {
+            padding: 2px 8px;
+            cursor: default;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background: #e5f1fb;
+            border: 1px solid #a8d5ff;
+        }
+
         /* Top Tab Bar */
         .tab-bar {
-            height: 28px;
+            height: var(--tab-height);
             display: flex;
             justify-content: center;
             align-items: flex-end;
@@ -62,44 +89,45 @@
         .main-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 28px);
+            /* 画面全体の高さからメニュー、タブ、ステータスバーを引く */
+            height: calc(100vh - var(--menu-height) - var(--tab-height));
+            overflow: hidden;
         }
 
         /* Upper Area (Controls) */
         .upper-area {
             display: flex;
-            height: 48%; 
+            height: 50%; 
             min-height: 200px;
-            padding: 12px 8px 8px 8px; /* Added top padding to accommodate labels */
+            padding: 12px 8px 8px 8px;
             box-sizing: border-box;
+            flex-shrink: 0; /* 高さを維持 */
         }
 
         /* Lower Area (Preview) */
         .lower-area {
-            flex: 1;
+            flex: 1; /* 残りの領域をすべて使う */
             display: flex;
             flex-direction: column;
-            padding: 0 8px 8px 8px;
-            min-height: 150px;
+            padding: 0 8px 4px 8px;
             box-sizing: border-box;
             overflow: hidden;
         }
 
-        /* Panel Styling (Java Swing Inset Border look) */
+        /* Panel Styling */
         .panel-inset {
             background: var(--swing-panel-bg);
             border: 1px solid #999;
             box-shadow: inset 1px 1px 1px #fff;
             display: flex;
             flex-direction: column;
-            overflow: visible; /* Changed from hidden to show labels correctly */
-            min-width: 100px;
             position: relative;
+            min-width: 100px;
         }
 
         .panel-label {
             position: absolute;
-            top: -8px; /* Adjusted position */
+            top: -8px;
             left: 10px;
             background: var(--swing-bg);
             padding: 0 4px;
@@ -112,10 +140,10 @@
 
         .panel-content {
             flex: 1;
-            padding: 8px 4px 4px 4px; /* Added top padding to offset label */
+            padding: 8px 4px 4px 4px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* 子要素でスクロールさせる */
         }
 
         /* Resizers */
@@ -127,8 +155,7 @@
             border: 1px solid #aaa;
             background: white;
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: auto;
         }
         .tree-row { 
             display: flex; 
@@ -136,8 +163,6 @@
             padding: 2px 4px; 
             white-space: nowrap; 
             cursor: default;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         .tree-row:hover { background: #f0f0f0; }
         .tree-row.selected { background: var(--highlight-blue); color: white; }
@@ -155,8 +180,9 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            min-width: 70px;
+            min-width: 80px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .btn-native:active { background: #ccc; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
 
@@ -177,7 +203,6 @@
             padding: 6px 2px;
             border-radius: 3px;
             cursor: pointer;
-            overflow: hidden;
         }
         .catalog-item span { font-size: 16px; }
         .catalog-item div { font-size: 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
@@ -194,18 +219,6 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-        }
-        .prop-label {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-        }
-        .prop-input-wrap {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            flex-shrink: 0;
         }
         .prop-input {
             width: 50px;
@@ -249,9 +262,9 @@
             flex-shrink: 0;
         }
 
-        /* Status Bar Footer */
+        /* Status Bar */
         .status-bar {
-            height: 24px;
+            height: var(--status-height);
             background: #ececec;
             border-top: 1px solid #999;
             display: flex;
@@ -261,40 +274,20 @@
             color: #444;
             flex-shrink: 0;
             white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .menu-bar {
-        height: var(--menu-height);
-        background: var(--swing-bg);
-        display: flex;
-        align-items: center;
-        padding: 0 5px;
-        border-bottom: 1px solid #ccc;
-        z-index: 100;
-        }
-
-        .menu-item {
-            padding: 2px 8px;
-            cursor: default;
-            border: 1px solid transparent;
-        }
-
-        .menu-item:hover {
-            background: #e5f1fb;
-            border: 1px solid #a8d5ff;
         }
     </style>
 </head>
 <body>
 
+<!-- Menu Bar -->
 <div class="menu-bar">
-    <div class="menu-item"> File</div> 
+    <div class="menu-item">File</div> 
     <div class="menu-item">Edit</div> 
-    <div class="menu-item"> Tools</div>
-    <div class="menu-item"> Help</div>
+    <div class="menu-item">Tools</div>
+    <div class="menu-item">Help</div>
 </div>
     
+<!-- Tab Bar -->
 <div class="tab-bar">
     <div class="tab active">Rocket design</div>
     <div class="tab">Motors & Configuration</div>
@@ -321,10 +314,10 @@
         </div>
 
         <!-- Tree Controls -->
-        <div class="flex flex-col gap-1 px-1 justify-start mt-2 overflow-y-auto" style="min-width: 90px;">
+        <div class="flex flex-col gap-1 px-2 justify-start mt-2" style="width: 100px; flex-shrink: 0;">
             <button class="btn-native">⬆ Move up</button>
             <button class="btn-native">⬇ Move down</button>
-            <div class="mt-2"></div>
+            <div class="mt-2 border-t border-gray-300 pt-2"></div>
             <button class="btn-native">📝 Edit</button>
             <button class="btn-native">📄 Duplicate</button>
             <button class="btn-native text-red-700">✖ Delete</button>
@@ -335,20 +328,22 @@
         <!-- Catalog Panel -->
         <div class="panel-inset flex-1" id="col-catalog" style="min-width: 150px;">
             <div class="panel-label">Add new component</div>
-            <div class="panel-content overflow-y-auto">
-                <div class="catalog-section-title">Assembly</div>
-                <div class="catalog-grid mb-2">
-                    <div class="catalog-item"><span>🚀</span><div>Stage</div></div>
-                    <div class="catalog-item opacity-50"><span>🚀🚀</span><div>Boosters</div></div>
-                    <div class="catalog-item"><span>⚙</span><div>Pods</div></div>
-                </div>
-                <div class="catalog-section-title">Body and Fins</div>
-                <div class="catalog-grid">
-                    <div class="catalog-item"><span>△</span><div>Nose Cone</div></div>
-                    <div class="catalog-item"><span>▭</span><div>Body Tube</div></div>
-                    <div class="catalog-item"><span>▽</span><div>Transition</div></div>
-                    <div class="catalog-item"><span>◬</span><div>Trapezoidal</div></div>
-                    <div class="catalog-item"><span>◓</span><div>Elliptical</div></div>
+            <div class="panel-content">
+                <div class="overflow-y-auto pr-1">
+                    <div class="catalog-section-title">Assembly</div>
+                    <div class="catalog-grid mb-3">
+                        <div class="catalog-item"><span>🚀</span><div>Stage</div></div>
+                        <div class="catalog-item opacity-50"><span>🚀🚀</span><div>Boosters</div></div>
+                        <div class="catalog-item"><span>⚙</span><div>Pods</div></div>
+                    </div>
+                    <div class="catalog-section-title">Body and Fins</div>
+                    <div class="catalog-grid">
+                        <div class="catalog-item"><span>△</span><div>Nose Cone</div></div>
+                        <div class="catalog-item"><span>▭</span><div>Body Tube</div></div>
+                        <div class="catalog-item"><span>▽</span><div>Transition</div></div>
+                        <div class="catalog-item"><span>◬</span><div>Trapezoidal</div></div>
+                        <div class="catalog-item"><span>◓</span><div>Elliptical</div></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -358,25 +353,27 @@
         <!-- Properties Panel -->
         <div class="panel-inset" id="col-props" style="width: 220px;">
             <div class="panel-label">Properties</div>
-            <div class="panel-content bg-white/50 overflow-y-auto">
-                <div class="prop-group">
-                    <div class="font-bold text-blue-800 mb-1 truncate">Nose Cone</div>
-                    <div class="prop-row">
-                        <span class="prop-label">Length</span>
-                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="44.1"><span>cm</span></div>
+            <div class="panel-content bg-white/40">
+                <div class="overflow-y-auto pr-1">
+                    <div class="prop-group">
+                        <div class="font-bold text-blue-800 mb-1 truncate">Nose Cone</div>
+                        <div class="prop-row">
+                            <span class="prop-label">Length</span>
+                            <div class="flex items-center gap-1"><input type="text" class="prop-input" value="44.1"><span>cm</span></div>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label">Base diameter</span>
+                            <div class="flex items-center gap-1"><input type="text" class="prop-input" value="3.37"><span>cm</span></div>
+                        </div>
+                        <div class="prop-row">
+                            <span class="prop-label">Wall thickness</span>
+                            <div class="flex items-center gap-1"><input type="text" class="prop-input" value="0.1"><span>cm</span></div>
+                        </div>
+                        <hr class="my-1 border-gray-300">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" checked class="w-3 h-3"> <span class="truncate">Show CP/CG</span>
+                        </label>
                     </div>
-                    <div class="prop-row">
-                        <span class="prop-label">Base diameter</span>
-                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="3.37"><span>cm</span></div>
-                    </div>
-                    <div class="prop-row">
-                        <span class="prop-label">Wall thickness</span>
-                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="0.1"><span>cm</span></div>
-                    </div>
-                    <hr class="my-1 border-gray-300">
-                    <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" checked class="w-3 h-3"> <span class="truncate">Show CP/CG</span>
-                    </label>
                 </div>
             </div>
         </div>
@@ -390,7 +387,7 @@
         <div class="preview-toolbar">
             <div class="flex items-center gap-1">
                 <span>View:</span>
-                <select class="border text-[10px] bg-white"><option>3D Finished</option><option>Side View</option></select>
+                <select class="border text-[10px] bg-white"><option>Side View</option><option>3D Finished</option></select>
             </div>
             <div class="flex items-center gap-1 ml-2">
                 <span>Zoom:</span>
@@ -398,25 +395,19 @@
                 <div class="bg-white border px-2">Fit</div>
                 <button class="btn-native h-4 min-w-0 px-2">+</button>
             </div>
-            <div class="flex items-center gap-1 ml-2">
-                <input type="checkbox" checked class="w-3 h-3"> <span>CP/CG</span>
-            </div>
-            <div class="flex items-center gap-1 ml-2">
+            <div class="ml-auto flex items-center gap-2">
                 <span class="bg-blue-600 text-white px-2 rounded-sm" style="font-size: 9px;">Sustainer</span>
-            </div>
-            <div class="ml-auto">
-                <select class="border text-[10px] bg-white"><option>[C6-5]</option></select>
             </div>
         </div>
 
         <div class="canvas-area">
             <div class="v-slider">
-                <span class="text-[9px] mb-1">0°</span>
+                <span class="text-[9px] mb-1 font-bold">0°</span>
                 <div class="w-1 flex-1 bg-gray-300 relative border border-gray-400">
                     <div class="absolute top-0 w-4 h-2 bg-gray-600 left-[-6px] border border-black shadow-sm"></div>
                 </div>
             </div>
-            <div class="flex-1 relative overflow-hidden">
+            <div class="flex-1 relative overflow-hidden bg-white">
                 <svg width="100%" height="100%" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
                     <g transform="translate(100, 200)">
                         <path d="M 0 0 Q 80 -25 120 -25 L 120 25 Q 80 25 0 0" fill="#bbb" stroke="#333" />
@@ -428,22 +419,18 @@
                     </g>
                 </svg>
 
-                <!-- Floating Metrics Overlay -->
-                <div class="absolute bottom-2 left-2 text-[9px] pointer-events-none bg-white/50 p-1">
-                    <div class="text-blue-800">Apogee: 198 m</div>
-                    <div class="text-blue-800">Max. vel: 72 m/s</div>
+                <div class="absolute bottom-2 left-2 text-[9px] pointer-events-none bg-white/70 p-1 border border-gray-300 rounded">
+                    <div class="text-blue-800 font-bold">Apogee: 198 m</div>
+                    <div class="text-blue-800">Max. velocity: 72 m/s</div>
                 </div>
-
-                <div class="absolute top-2 right-2 text-right text-[9px] pointer-events-none bg-white/50 p-1">
+                <div class="absolute top-2 right-2 text-right text-[9px] pointer-events-none bg-white/70 p-1 border border-gray-300 rounded">
                     <div class="font-bold">Stability: 1.11 cal</div>
-                    <div class="text-blue-800">● CG: 26.9 cm</div>
-                    <div class="text-red-700">● CP: 30.6 cm</div>
                 </div>
             </div>
         </div>
 
         <div class="status-bar">
-            <span>Ready. Click to select.</span>
+            <span>Ready.</span>
             <span class="ml-auto">
                 <input type="checkbox" checked id="show-warn"> <label for="show-warn">Show warnings</label>
             </span>
@@ -452,9 +439,6 @@
 </div>
 
 <script>
-    /**
-     * Improved Resizer Engine with boundary checks
-     */
     const setupResizer = (resId, targetId, mode) => {
         const resizer = document.getElementById(resId);
         const target = document.getElementById(targetId);
@@ -466,7 +450,6 @@
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onEnd);
             document.body.style.userSelect = 'none';
-            resizer.style.background = 'rgba(51, 153, 255, 0.4)';
         });
 
         const onMove = (e) => {
@@ -474,13 +457,12 @@
             const delta = currentPos - startPos;
             const newSize = startSize + delta;
             
-            // Boundary constraints
             if (mode === 'h') {
-                if (newSize > 80 && newSize < window.innerWidth * 0.7) {
+                if (newSize > 100 && newSize < window.innerWidth * 0.7) {
                     target.style.width = newSize + 'px';
                 }
             } else {
-                if (newSize > 150 && newSize < window.innerHeight * 0.8) {
+                if (newSize > 150 && newSize < window.innerHeight - 200) {
                     target.style.height = newSize + 'px';
                 }
             }
@@ -490,7 +472,6 @@
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onEnd);
             document.body.style.userSelect = 'auto';
-            resizer.style.background = 'transparent';
         };
     };
 
@@ -498,7 +479,6 @@
     setupResizer('res-2', 'col-catalog', 'h');
     setupResizer('res-v', 'upper-area', 'v');
 
-    // Tree Selection Logic
     document.querySelectorAll('.tree-row').forEach(row => {
         row.addEventListener('click', () => {
             document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('selected'));
@@ -506,16 +486,14 @@
         });
     });
 
-    // Handle Window Resize to ensure layout doesn't break
     window.addEventListener('resize', () => {
         const upper = document.getElementById('upper-area');
-        if (upper.offsetHeight > window.innerHeight * 0.8) {
-            upper.style.height = '70%';
+        const maxH = window.innerHeight - 250;
+        if (upper.offsetHeight > maxH) {
+            upper.style.height = maxH + 'px';
         }
     });
 </script>
 
 </body>
 </html>
-
-
