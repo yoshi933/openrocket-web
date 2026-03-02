@@ -1,1 +1,521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRocket Desktop Web - Fixed Layout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --swing-bg: #ececec;
+            --swing-border: #999999;
+            --swing-border-light: #ffffff;
+            --swing-panel-bg: #f7f7f7;
+            --swing-header-bg: #e0e0e0;
+            --highlight-blue: #3399ff;
+            --text-main: #000000;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Lucida Grande', 'Segoe UI', sans-serif;
+            font-size: 11px;
+            background-color: var(--swing-bg);
+            color: var(--text-main);
+        }
+
+        /* Top Tab Bar */
+        .tab-bar {
+            height: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            background: #cccccc;
+            border-bottom: 1px solid #888;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 3px 14px;
+            background: #d0d0d0;
+            border: 1px solid #999;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin: 0 1px;
+            cursor: pointer;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: var(--swing-bg);
+            font-weight: bold;
+            box-shadow: 0px -1px 2px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--swing-bg);
+            margin-bottom: -1px;
+            z-index: 5;
+        }
+
+        /* Layout Framework */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 28px);
+        }
+
+        /* Upper Area (Controls) */
+        .upper-area {
+            display: flex;
+            height: 48%; 
+            min-height: 200px;
+            padding: 12px 8px 8px 8px; /* Added top padding to accommodate labels */
+            box-sizing: border-box;
+        }
+
+        /* Lower Area (Preview) */
+        .lower-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 8px 8px 8px;
+            min-height: 150px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Panel Styling (Java Swing Inset Border look) */
+        .panel-inset {
+            background: var(--swing-panel-bg);
+            border: 1px solid #999;
+            box-shadow: inset 1px 1px 1px #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: visible; /* Changed from hidden to show labels correctly */
+            min-width: 100px;
+            position: relative;
+        }
+
+        .panel-label {
+            position: absolute;
+            top: -8px; /* Adjusted position */
+            left: 10px;
+            background: var(--swing-bg);
+            padding: 0 4px;
+            font-size: 10px;
+            font-weight: normal;
+            z-index: 10;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 8px 4px 4px 4px; /* Added top padding to offset label */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Resizers */
+        .resizer-h { width: 6px; cursor: col-resize; z-index: 20; flex-shrink: 0; }
+        .resizer-v { height: 6px; cursor: row-resize; z-index: 20; flex-shrink: 0; }
+
+        /* Tree Styles */
+        .tree-container {
+            border: 1px solid #aaa;
+            background: white;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .tree-row { 
+            display: flex; 
+            align-items: center; 
+            padding: 2px 4px; 
+            white-space: nowrap; 
+            cursor: default;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tree-row:hover { background: #f0f0f0; }
+        .tree-row.selected { background: var(--highlight-blue); color: white; }
+        .indent { width: 16px; flex-shrink: 0; }
+
+        /* Buttons */
+        .btn-native {
+            padding: 2px 8px;
+            border: 1px solid #999;
+            background: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+            border-radius: 3px;
+            font-size: 10.5px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 70px;
+            white-space: nowrap;
+        }
+        .btn-native:active { background: #ccc; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+
+        /* Catalog Grid */
+        .catalog-section-title { font-size: 10px; color: #555; margin: 4px 0 2px 0; font-weight: bold; white-space: nowrap; }
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 4px;
+            padding: 2px;
+        }
+        .catalog-item {
+            border: 1px solid #ccc;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .catalog-item span { font-size: 16px; }
+        .catalog-item div { font-size: 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        /* Properties Panel */
+        .prop-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 4px;
+        }
+        .prop-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .prop-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        .prop-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .prop-input {
+            width: 50px;
+            border: 1px solid #aaa;
+            padding: 1px 4px;
+            font-size: 10px;
+            height: 18px;
+        }
+
+        /* Preview Area */
+        .preview-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 8px;
+            background: var(--swing-bg);
+            border: 1px solid #999;
+            border-bottom: none;
+            font-size: 10px;
+            flex-shrink: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .canvas-area {
+            background: white;
+            border: 1px solid #999;
+            flex: 1;
+            position: relative;
+            display: flex;
+            overflow: hidden;
+        }
+        .v-slider {
+            width: 24px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            background: #f0f0f0;
+            flex-shrink: 0;
+        }
+
+        /* Status Bar Footer */
+        .status-bar {
+            height: 24px;
+            background: #ececec;
+            border-top: 1px solid #999;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 10px;
+            color: #444;
+            flex-shrink: 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .menu-bar {
+        height: var(--menu-height);
+        background: var(--swing-bg);
+        display: flex;
+        align-items: center;
+        padding: 0 5px;
+        border-bottom: 1px solid #ccc;
+        z-index: 100;
+        }
+
+        .menu-item {
+            padding: 2px 8px;
+            cursor: default;
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: #e5f1fb;
+            border: 1px solid #a8d5ff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="menu-bar">
+    <div class="menu-item"> File</div> 
+    <div class="menu-item">Edit</div> 
+    <div class="menu-item"> Tools</div>
+    <div class="menu-item"> Help</div>
+</div>
+    
+<div class="tab-bar">
+    <div class="tab active">Rocket design</div>
+    <div class="tab">Motors & Configuration</div>
+    <div class="tab">Flight simulations</div>
+</div>
+
+<div class="main-container">
+    <!-- UPPER AREA -->
+    <div class="upper-area" id="upper-area">
+        <!-- Tree Panel -->
+        <div class="panel-inset" id="col-tree" style="width: 220px;">
+            <div class="panel-label">Rocket components</div>
+            <div class="panel-content">
+                <div class="tree-container">
+                    <div class="tree-row"><span class="mr-1">📁</span> Sustainer</div>
+                    <div class="tree-row selected"><span class="indent"></span><span>△</span> Nose Cone</div>
+                    <div class="tree-row"><span class="indent"></span><span class="indent"></span><span>📦</span> Mass Component</div>
+                    <div class="tree-row"><span class="indent"></span><span>▭</span> Airframe</div>
+                    <div class="tree-row"><span class="indent"></span><span class="indent"></span><span>🪂</span> Parachute</div>
+                    <div class="tree-row"><span class="indent"></span><span>◬</span> Wings</div>
+                    <div class="tree-row"><span class="indent"></span><span>⚪</span> Wing pods</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tree Controls -->
+        <div class="flex flex-col gap-1 px-1 justify-start mt-2 overflow-y-auto" style="min-width: 90px;">
+            <button class="btn-native">⬆ Move up</button>
+            <button class="btn-native">⬇ Move down</button>
+            <div class="mt-2"></div>
+            <button class="btn-native">📝 Edit</button>
+            <button class="btn-native">📄 Duplicate</button>
+            <button class="btn-native text-red-700">✖ Delete</button>
+        </div>
+
+        <div class="resizer-h" id="res-1"></div>
+
+        <!-- Catalog Panel -->
+        <div class="panel-inset flex-1" id="col-catalog" style="min-width: 150px;">
+            <div class="panel-label">Add new component</div>
+            <div class="panel-content overflow-y-auto">
+                <div class="catalog-section-title">Assembly</div>
+                <div class="catalog-grid mb-2">
+                    <div class="catalog-item"><span>🚀</span><div>Stage</div></div>
+                    <div class="catalog-item opacity-50"><span>🚀🚀</span><div>Boosters</div></div>
+                    <div class="catalog-item"><span>⚙</span><div>Pods</div></div>
+                </div>
+                <div class="catalog-section-title">Body and Fins</div>
+                <div class="catalog-grid">
+                    <div class="catalog-item"><span>△</span><div>Nose Cone</div></div>
+                    <div class="catalog-item"><span>▭</span><div>Body Tube</div></div>
+                    <div class="catalog-item"><span>▽</span><div>Transition</div></div>
+                    <div class="catalog-item"><span>◬</span><div>Trapezoidal</div></div>
+                    <div class="catalog-item"><span>◓</span><div>Elliptical</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="resizer-h" id="res-2"></div>
+
+        <!-- Properties Panel -->
+        <div class="panel-inset" id="col-props" style="width: 220px;">
+            <div class="panel-label">Properties</div>
+            <div class="panel-content bg-white/50 overflow-y-auto">
+                <div class="prop-group">
+                    <div class="font-bold text-blue-800 mb-1 truncate">Nose Cone</div>
+                    <div class="prop-row">
+                        <span class="prop-label">Length</span>
+                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="44.1"><span>cm</span></div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Base diameter</span>
+                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="3.37"><span>cm</span></div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Wall thickness</span>
+                        <div class="prop-input-wrap"><input type="text" class="prop-input" value="0.1"><span>cm</span></div>
+                    </div>
+                    <hr class="my-1 border-gray-300">
+                    <label class="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" checked class="w-3 h-3"> <span class="truncate">Show CP/CG</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VERTICAL RESIZER -->
+    <div class="resizer-v" id="res-v"></div>
+
+    <!-- LOWER AREA (Preview) -->
+    <div class="lower-area">
+        <div class="preview-toolbar">
+            <div class="flex items-center gap-1">
+                <span>View:</span>
+                <select class="border text-[10px] bg-white"><option>3D Finished</option><option>Side View</option></select>
+            </div>
+            <div class="flex items-center gap-1 ml-2">
+                <span>Zoom:</span>
+                <button class="btn-native h-4 min-w-0 px-2">-</button>
+                <div class="bg-white border px-2">Fit</div>
+                <button class="btn-native h-4 min-w-0 px-2">+</button>
+            </div>
+            <div class="flex items-center gap-1 ml-2">
+                <input type="checkbox" checked class="w-3 h-3"> <span>CP/CG</span>
+            </div>
+            <div class="flex items-center gap-1 ml-2">
+                <span class="bg-blue-600 text-white px-2 rounded-sm" style="font-size: 9px;">Sustainer</span>
+            </div>
+            <div class="ml-auto">
+                <select class="border text-[10px] bg-white"><option>[C6-5]</option></select>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div class="v-slider">
+                <span class="text-[9px] mb-1">0°</span>
+                <div class="w-1 flex-1 bg-gray-300 relative border border-gray-400">
+                    <div class="absolute top-0 w-4 h-2 bg-gray-600 left-[-6px] border border-black shadow-sm"></div>
+                </div>
+            </div>
+            <div class="flex-1 relative overflow-hidden">
+                <svg width="100%" height="100%" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                    <g transform="translate(100, 200)">
+                        <path d="M 0 0 Q 80 -25 120 -25 L 120 25 Q 80 25 0 0" fill="#bbb" stroke="#333" />
+                        <rect x="120" y="-25" width="500" height="50" fill="#ddd" stroke="#333" />
+                        <path d="M 520 -25 L 620 -90 L 680 -90 L 620 -25 Z" fill="#999" stroke="#333" />
+                        <path d="M 520 25 L 620 90 L 680 90 L 620 25 Z" fill="#999" stroke="#333" />
+                        <circle cx="480" cy="0" r="8" fill="blue" stroke="white" stroke-width="1.5" />
+                        <circle cx="560" cy="0" r="7" fill="red" stroke="white" stroke-width="1.5" />
+                    </g>
+                </svg>
+
+                <!-- Floating Metrics Overlay -->
+                <div class="absolute bottom-2 left-2 text-[9px] pointer-events-none bg-white/50 p-1">
+                    <div class="text-blue-800">Apogee: 198 m</div>
+                    <div class="text-blue-800">Max. vel: 72 m/s</div>
+                </div>
+
+                <div class="absolute top-2 right-2 text-right text-[9px] pointer-events-none bg-white/50 p-1">
+                    <div class="font-bold">Stability: 1.11 cal</div>
+                    <div class="text-blue-800">● CG: 26.9 cm</div>
+                    <div class="text-red-700">● CP: 30.6 cm</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span>Ready. Click to select.</span>
+            <span class="ml-auto">
+                <input type="checkbox" checked id="show-warn"> <label for="show-warn">Show warnings</label>
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Improved Resizer Engine with boundary checks
+     */
+    const setupResizer = (resId, targetId, mode) => {
+        const resizer = document.getElementById(resId);
+        const target = document.getElementById(targetId);
+        let startPos, startSize;
+
+        resizer.addEventListener('mousedown', (e) => {
+            startPos = (mode === 'h') ? e.clientX : e.clientY;
+            startSize = (mode === 'h') ? target.offsetWidth : target.offsetHeight;
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.body.style.userSelect = 'none';
+            resizer.style.background = 'rgba(51, 153, 255, 0.4)';
+        });
+
+        const onMove = (e) => {
+            const currentPos = (mode === 'h') ? e.clientX : e.clientY;
+            const delta = currentPos - startPos;
+            const newSize = startSize + delta;
+            
+            // Boundary constraints
+            if (mode === 'h') {
+                if (newSize > 80 && newSize < window.innerWidth * 0.7) {
+                    target.style.width = newSize + 'px';
+                }
+            } else {
+                if (newSize > 150 && newSize < window.innerHeight * 0.8) {
+                    target.style.height = newSize + 'px';
+                }
+            }
+        };
+
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.body.style.userSelect = 'auto';
+            resizer.style.background = 'transparent';
+        };
+    };
+
+    setupResizer('res-1', 'col-tree', 'h');
+    setupResizer('res-2', 'col-catalog', 'h');
+    setupResizer('res-v', 'upper-area', 'v');
+
+    // Tree Selection Logic
+    document.querySelectorAll('.tree-row').forEach(row => {
+        row.addEventListener('click', () => {
+            document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+        });
+    });
+
+    // Handle Window Resize to ensure layout doesn't break
+    window.addEventListener('resize', () => {
+        const upper = document.getElementById('upper-area');
+        if (upper.offsetHeight > window.innerHeight * 0.8) {
+            upper.style.height = '70%';
+        }
+    });
+</script>
+
+</body>
+</html>
+
 
