@@ -27,7 +27,7 @@ The frontend communicates with the backend (Java + OpenRocket‑core) via REST A
 
 ---
 
-## 📁 Folder Structure
+## 📁 Folder Structure(supposition)
 
 ```
 frontend/
