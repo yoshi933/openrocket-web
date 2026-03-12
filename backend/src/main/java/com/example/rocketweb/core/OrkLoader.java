@@ -2,12 +2,13 @@ package com.example.rocketweb.core;
 
 import net.sf.openrocket.document.OpenRocketDocument;
 import net.sf.openrocket.file.openrocket.OpenRocketLoader;
-import net.sf.openrocket.file.DatabaseMotorFinder;
+import net.sf.openrocket.utils.ORLoaderWithoutSimulation;
 import net.sf.openrocket.startup.Application;
 import net.sf.openrocket.startup.GuiModule;
 import net.sf.openrocket.plugin.PluginModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import net.sf.openrocket.file.DatabaseMotorFinder;
 
 import org.springframework.stereotype.Component;
 
