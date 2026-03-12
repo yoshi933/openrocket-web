@@ -1,0 +1,39 @@
+:root {
+  /* Primary palette – OpenRocket-inspired blue/gray */
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-border: #d0d5dd;
+  --color-primary: #1565c0;
+  --color-primary-hover: #0d47a1;
+  --color-primary-light: #e3f2fd;
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-accent: #64b5f6;
+
+  /* Menu bar */
+  --menu-bar-bg: #2c3e50;
+  --menu-bar-text: #ecf0f1;
+  --menu-dropdown-bg: #34495e;
+  --menu-dropdown-hover: #1abc9c;
+
+  /* Bottom tabs */
+  --tab-bg: #2c3e50;
+  --tab-text: #bdc3c7;
+  --tab-active-bg: #1565c0;
+  --tab-active-text: #ffffff;
+
+  /* Pane headers */
+  --pane-header-bg: #dde3ea;
+  --pane-header-text: #2c3e50;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+
+  /* Typography */
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+}
