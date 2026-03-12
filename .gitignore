@@ -1,1 +1,21 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
 
+# IDE
+.idea/
+*.iml
+.eclipse/
+.classpath
+.project
+.settings/
+
+# Node / frontend
+node_modules/
+dist/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
