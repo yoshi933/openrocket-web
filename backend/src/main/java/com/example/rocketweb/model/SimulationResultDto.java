@@ -21,6 +21,9 @@ public class SimulationResultDto {
     /** Acceleration values in meters per second squared */
     private List<Double> acceleration;
 
+    /** Maximum altitude reached during the flight (meters) */
+    private double maxAltitude;
+
     public String getProjectId() { return projectId; }
     public void setProjectId(String projectId) { this.projectId = projectId; }
 
@@ -35,4 +38,7 @@ public class SimulationResultDto {
 
     public List<Double> getAcceleration() { return acceleration; }
     public void setAcceleration(List<Double> acceleration) { this.acceleration = acceleration; }
+
+    public double getMaxAltitude() { return maxAltitude; }
+    public void setMaxAltitude(double maxAltitude) { this.maxAltitude = maxAltitude; }
 }
