@@ -20,7 +20,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // OpenRocket Core via JitPack
-    implementation 'com.github.openrocket:openrocket:v22.01'
+    implementation 'com.github.openrocket:openrocket:22.02.beta.01'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -1,6 +1,10 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: openrocket-web-backend
-
-server:
-  port: 8080
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
