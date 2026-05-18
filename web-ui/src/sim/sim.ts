@@ -128,11 +128,35 @@ export function simulate1D(input: SimulationInput): SimulationResult {
       maxAcceleration = Math.abs(a);
     }
 
+    const prevT = t;
+    const prevH = h;
+    const prevV = v;
+
     v = v + a * dtS;
     h = h + v * dtS;
     t = t + dtS;
 
     if (t > 0.5 && h <= 0 && v < 0) {
+      if (prevH > 0) {
+        const denom = prevH - h;
+        const frac = denom > 0 ? clamp(prevH / denom, 0, 1) : 1;
+        const tGround = prevT + dtS * frac;
+        const vGround = prevV + (v - prevV) * frac;
+
+        time.push(tGround);
+        altitude.push(0);
+        velocity.push(vGround);
+        acceleration.push(a);
+        densityKgM3.push(rho);
+        dragN.push(drag);
+        massKg.push(m);
+        thrustN.push(thrust);
+
+        if (Math.abs(vGround) > maxVelocity) maxVelocity = Math.abs(vGround);
+        if (Math.abs(a) > maxAcceleration) maxAcceleration = Math.abs(a);
+      } else {
+        altitude[altitude.length - 1] = 0;
+      }
       break;
     }
   }

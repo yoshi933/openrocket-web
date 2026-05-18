@@ -229,11 +229,40 @@ public class SimulationBridge {
             double aAbs = a < 0 ? -a : a;
             if (aAbs > summary.maxAcceleration) summary.maxAcceleration = aAbs;
 
+            double prevT = t;
+            double prevH = h;
+            double prevV = v;
+
             v = v + a * dtS;
             h = h + v * dtS;
             t = t + dtS;
 
             if (t > 0.5 && h <= 0 && v < 0) {
+                if (prevH > 0 && steps < maxSteps) {
+                    double denom = prevH - h;
+                    double frac = denom > 0 ? (prevH / denom) : 1.0;
+                    if (frac < 0) frac = 0;
+                    if (frac > 1) frac = 1;
+
+                    double tGround = prevT + dtS * frac;
+                    double vGround = prevV + (v - prevV) * frac;
+
+                    data.time[steps] = tGround;
+                    data.altitude[steps] = 0.0;
+                    data.velocity[steps] = vGround;
+                    data.acceleration[steps] = a;
+                    data.densityKgM3[steps] = rho;
+                    data.dragN[steps] = drag;
+                    data.massKg[steps] = m;
+                    data.thrustN[steps] = thrust;
+                    steps++;
+
+                    double vGroundAbs = vGround < 0 ? -vGround : vGround;
+                    if (vGroundAbs > summary.maxVelocity) summary.maxVelocity = vGroundAbs;
+                    if (aAbs > summary.maxAcceleration) summary.maxAcceleration = aAbs;
+                } else if (steps > 0) {
+                    data.altitude[steps - 1] = 0.0;
+                }
                 break;
             }
         }
