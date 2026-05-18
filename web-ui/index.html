@@ -7,7 +7,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- TeaVM WASM runtime (provides imports and String helpers used by the loader) -->
+    <script src="/wasm/app.wasm-runtime.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
