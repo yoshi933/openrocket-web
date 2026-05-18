@@ -1,21 +1,56 @@
 export interface SimulationExports {
-  // TeaVM がエクスポートする関数名に合わせる（ラッパーがある場合は調整）
-  // ここでは簡易的に文字列ベースの呼び出しを想定
-  runSimulation?: (ptr: number, len: number) => number;
-  // TeaVM が生成する場合は別の形になることがある
-  memory?: WebAssembly.Memory;
+  runSimulation: (orkData: string) => string;
+  __kind: 'wasm' | 'stub';
+}
+
+function createStubExports(): SimulationExports {
+  return {
+    __kind: 'stub',
+    runSimulation: (orkData: string) =>
+      JSON.stringify({
+        summary: {
+          maxAltitude: 1234.5,
+          maxVelocity: 210.3,
+          flightTime: 35.2
+        },
+        meta: {
+          note: 'stub result (WASM not available)',
+          orkDataLength: orkData.length
+        }
+      })
+  };
 }
 
 /**
  * WASM モジュールをロードし、エクスポートを返す（簡易版）
  */
-export async function loadWasm(): Promise<any> {
-  const response = await fetch('/wasm/app.wasm');
-  const bytes = await response.arrayBuffer();
-  const { instance } = await WebAssembly.instantiate(bytes, {
-    env: {
-      // 必要に応じてインポート関数を定義
+export async function loadWasm(): Promise<SimulationExports> {
+  try {
+    const response = await fetch('/wasm/app.wasm');
+    if (!response.ok) {
+      return createStubExports();
     }
-  });
-  return instance.exports;
+
+    const bytes = await response.arrayBuffer();
+    const { instance } = await WebAssembly.instantiate(bytes, {});
+
+    const maybeRunSimulation = (instance.exports as any).runSimulation;
+    if (typeof maybeRunSimulation !== 'function') {
+      return createStubExports();
+    }
+
+    return {
+      __kind: 'wasm',
+      runSimulation: (orkData: string) => {
+        try {
+          const result = maybeRunSimulation(orkData);
+          return typeof result === 'string' ? result : JSON.stringify(result);
+        } catch {
+          return createStubExports().runSimulation(orkData);
+        }
+      }
+    };
+  } catch {
+    return createStubExports();
+  }
 }

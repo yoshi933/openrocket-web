@@ -15,17 +15,24 @@
   </properties>
 
   <dependencies>
-    <!-- Replace with actual OpenRocket Core coordinates or install to local repo -->
-    <dependency>
-      <groupId>org.openrocket</groupId>
-      <artifactId>openrocket-core</artifactId>
-      <version>REPLACE_ME</version>
-    </dependency>
-
     <!-- TeaVM JS interop -->
     <dependency>
       <groupId>org.teavm</groupId>
       <artifactId>teavm-jso</artifactId>
+      <version>${teavm.version}</version>
+    </dependency>
+
+    <!-- TeaVM export annotations (WASM exports) -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-interop</artifactId>
+      <version>${teavm.version}</version>
+    </dependency>
+
+    <!-- TeaVM class library (required for compilation targets like WASM) -->
+    <dependency>
+      <groupId>org.teavm</groupId>
+      <artifactId>teavm-classlib</artifactId>
       <version>${teavm.version}</version>
     </dependency>
   </dependencies>
@@ -44,8 +51,9 @@
             <configuration>
               <targetDirectory>${project.build.directory}/wasm</targetDirectory>
               <mainClass>org.openrocket.web.SimulationBridge</mainClass>
-              <target>wasm</target>
-              <debugInformation>true</debugInformation>
+              <targetType>WEBASSEMBLY</targetType>
+              <targetFileName>app.wasm</targetFileName>
+              <debugInformationGenerated>true</debugInformationGenerated>
             </configuration>
           </execution>
         </executions>

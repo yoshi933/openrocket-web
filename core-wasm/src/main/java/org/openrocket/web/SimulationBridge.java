@@ -1,14 +1,17 @@
 package org.openrocket.web;
 
-import org.teavm.jso.JSExport;
+import org.teavm.interop.Export;
 
 public class SimulationBridge {
+    public static void main(String[] args) {
+    }
+
 
     /**
      * ORK ファイル内容（テキスト）を受け取り、シミュレーション結果を JSON 文字列で返す。
      * 実際の実装では OpenRocket Core の API を呼び出してシミュレーションを実行する。
      */
-    @JSExport
+    @Export(name = "runSimulation")
     public static String runSimulation(String orkData) {
         // TODO: orkData をパースしてモデルを構築
         // TODO: OpenRocket Core のシミュレーションを呼び出す
