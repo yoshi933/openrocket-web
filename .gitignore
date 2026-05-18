@@ -1,0 +1,8 @@
+node_modules/
+dist/
+web-ui/node_modules/
+core-wasm/target/
+*.log
+.idea/
+.vscode/
+.DS_Store
