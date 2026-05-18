@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "wasm:build": "mvn -f ../core-wasm/pom.xml clean package",
+    "wasm:copy": "node scripts/copy-wasm.mjs",
+    "wasm:prepare": "npm run wasm:build && npm run wasm:copy",
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview"

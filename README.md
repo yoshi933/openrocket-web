@@ -178,13 +178,14 @@ public class SimulationBridge {
      * JSON 形式は Web UI 側でパースして利用する。
      */
     @Export(name = "runSimulation")
-    public static String runSimulation(String orkData) {
-        // TODO: orkData をパースし、OpenRocket Core のロケットモデルに変換
-        // TODO: シミュレーションを実行
+    public static String runSimulation(String inputJson) {
+        // NOTE: 現時点では .ork ではなく「シミュレーション入力(JSON)」を受け取る
+        // TODO: 将来的に inputJson/.ork を OpenRocket Core のモデルへ変換
+        // TODO: OpenRocket Core のシミュレーションを呼び出す
         // TODO: 結果を JSON 文字列にシリアライズして返す
 
         // 仮実装（後で OpenRocket Core に置き換え）
-        return "{\"maxAltitude\": 123.4, \"timeSeries\": [0.0, 10.0, 20.0]}";
+        return "{\"summary\":{\"maxAltitude\":123.4},\"timeSeries\":{\"time\":[0.0],\"altitude\":[0.0]}}";
     }
 }
 ```
@@ -242,8 +243,9 @@ mvn clean package
 
 - 手動コピー:
   - `core-wasm/target/wasm/app.wasm` → `web-ui/public/wasm/app.wasm`
+  - `core-wasm/target/wasm/app.wasm-runtime.js` → `web-ui/public/wasm/app.wasm-runtime.js`（TeaVM のランタイム）
 - ビルドスクリプトで自動コピー:
-  - ルートに `Makefile` や `scripts/copy-wasm.js` を用意し、`npm run build` 前後でコピーする。
+  - `web-ui/scripts/copy-wasm.mjs` を用意し、`npm -C web-ui run wasm:copy` でコピーする。
 
 例: ルートの簡易スクリプトイメージ
 
@@ -251,6 +253,7 @@ mvn clean package
 # ルートディレクトリで
 mvn -f core-wasm/pom.xml package
 cp core-wasm/target/wasm/app.wasm web-ui/public/wasm/app.wasm
+cp core-wasm/target/wasm/app.wasm-runtime.js web-ui/public/wasm/app.wasm-runtime.js
 ```
 
 ---
@@ -265,28 +268,12 @@ cp core-wasm/target/wasm/app.wasm web-ui/public/wasm/app.wasm
 
 ### 6.2 TypeScript による WASM ローダー
 
-`src/wasm/loader.ts` の例:
+`src/wasm/loader.ts` は、`web-ui/public/wasm/app.wasm-runtime.js` が読み込まれている場合（`index.html` の `<script>`）に TeaVM のランタイム経由で WASM をロードし、利用できない場合は JS スタブにフォールバックします。
 
 ```ts
 export interface SimulationExports {
-  // TeaVM がエクスポートする関数名に合わせる
-  runSimulation: (ptr: number, len: number) => number;
-  // 文字列の受け渡し用にメモリ操作関数が必要になる場合もある
-  memory?: WebAssembly.Memory;
-}
-
-/**
- * WASM モジュールをロードし、エクスポートされた関数を返す。
- */
-export async function loadWasm(): Promise<WebAssembly.Instance["exports"]> {
-  const response = await fetch("/wasm/app.wasm");
-  const bytes = await response.arrayBuffer();
-  const { instance } = await WebAssembly.instantiate(bytes, {
-    env: {
-      // 必要に応じて import 関数を定義
-    },
-  });
-  return instance.exports;
+  runSimulation: (inputJson: string) => string;
+  __kind: 'wasm' | 'stub';
 }
 ```
 
@@ -315,9 +302,8 @@ function App() {
   const handleRunSimulation = async () => {
     if (!wasmExports) return;
 
-    const orkData = "..."; // 実際にはファイル入力やフォームから取得
-    // ここは TeaVM の JS ラッパの仕様に合わせて呼び出し方を調整する
-    const result = (wasmExports as any).runSimulation(orkData);
+    const inputJson = "{...}"; // UI から編集した JSON を渡す（現状）
+    const result = wasmExports.runSimulation(inputJson);
     setResultJson(result);
   };
 
@@ -351,6 +337,27 @@ export default App;
 - Web UI 側で JSON モデルを構築し、Java 側で内部モデルに変換する。
 
 将来的な拡張性を考えると、JSON モデルを定義しておくとよい。
+
+> 現状の実装メモ:
+> - `core-wasm` / `web-ui` ともに、OpenRocket Core ではなく「1 次元(鉛直)の簡易シミュレータ」を搭載しています。
+> - 入力は当面、以下のような **フラットな数値キー** を持つ JSON を想定しています（`.ork` 対応は今後）。
+
+例（現状の入力 JSON）:
+
+```json
+{
+  "dryMassKg": 0.3,
+  "propellantMassKg": 0.05,
+  "referenceAreaM2": 0.003,
+  "dragCoefficient": 0.5,
+  "averageThrustN": 12,
+  "burnTimeS": 1.5,
+  "gravityMS2": 9.80665,
+  "airDensityKgM3": 1.225,
+  "dtS": 0.02,
+  "maxTimeS": 60
+}
+```
 
 例（簡略化したロケットモデル JSON）:
 
@@ -424,18 +431,19 @@ Web UI で扱いやすいように、JSON 形式で返す。
 ### 9.1 初期セットアップ
 
 ```bash
-# Java 側（スタブ WASM を生成）
-mvn -f core-wasm/pom.xml clean package
-
-# 生成物を Web UI に配置（任意。未配置でも UI はスタブで動作します）
-cp core-wasm/target/wasm/app.wasm web-ui/public/wasm/app.wasm
-
-# Web UI 側
+# Web UI 側（依存導入）
 npm -C web-ui install
+
+# (任意) Java 側（WASM を生成して UI に配置）
+#   - これを実行すると Backend: wasm で動作します
+#   - 実行しない場合でも Backend: stub の JS シミュレータで動作します
+npm -C web-ui run wasm:prepare
+
+# 開発サーバ起動
 npm -C web-ui start
 ```
 
-ブラウザで `http://localhost:5173` を開き、`Backend: wasm` / `Backend: stub` を確認して `Run Simulation` を押すと JSON が表示されます。
+ブラウザで `http://localhost:5173` を開き、`Backend: wasm` / `Backend: stub` を確認して `Run Simulation` を押すと結果が表示されます。
 
 ### 9.2 開発サイクル
 
