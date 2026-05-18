@@ -354,6 +354,7 @@ export default App;
   "burnTimeS": 1.5,
   "gravityMS2": 9.80665,
   "airDensityKgM3": 1.225,
+  "atmosphereScaleHeightM": 8500,
   "dtS": 0.02,
   "maxTimeS": 60
 }
@@ -402,7 +403,9 @@ Web UI で扱いやすいように、JSON 形式で返す。
     "time": [0.0, 0.1, 0.2],
     "altitude": [0.0, 1.2, 2.5],
     "velocity": [0.0, 12.3, 24.1],
-    "acceleration": [0.0, 123.4, 110.2]
+    "acceleration": [0.0, 123.4, 110.2],
+    "densityKgM3": [1.225, 1.224, 1.223],
+    "dragN": [0.0, 0.2, 0.9]
   }
 }
 ```

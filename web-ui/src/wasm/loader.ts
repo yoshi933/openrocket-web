@@ -80,6 +80,7 @@ export async function loadWasm(): Promise<SimulationExports> {
           burnTimeS: number,
           gravityMS2: number,
           airDensityKgM3: number,
+          atmosphereScaleHeightM: number,
           dtS: number,
           maxTimeS: number
         ) => number)
@@ -104,6 +105,7 @@ export async function loadWasm(): Promise<SimulationExports> {
             input.burnTimeS,
             input.gravityMS2,
             input.airDensityKgM3,
+            input.atmosphereScaleHeightM,
             input.dtS,
             input.maxTimeS
           );
