@@ -80,6 +80,14 @@ function App() {
   const backendAltitudeSeries = toSeries(backendResult, (ts) => ts.altitude);
   const jsVelocitySeries = toSeries(jsResult, (ts) => ts.velocity);
   const backendVelocitySeries = toSeries(backendResult, (ts) => ts.velocity);
+  const jsAccelerationSeries = toSeries(jsResult, (ts) => ts.acceleration);
+  const backendAccelerationSeries = toSeries(backendResult, (ts) => ts.acceleration);
+  const jsThrustSeries = toSeries(jsResult, (ts) => ts.thrustN);
+  const backendThrustSeries = toSeries(backendResult, (ts) => ts.thrustN);
+  const jsMassSeries = toSeries(jsResult, (ts) => ts.massKg);
+  const backendMassSeries = toSeries(backendResult, (ts) => ts.massKg);
+  const jsDragSeries = toSeries(jsResult, (ts) => ts.dragN);
+  const backendDragSeries = toSeries(backendResult, (ts) => ts.dragN);
 
   return (
     <div style={{ padding: 20, display: 'grid', gap: 16 }}>
@@ -163,6 +171,40 @@ function App() {
                   backendVelocitySeries && { name: 'Backend', color: '#f97316', points: backendVelocitySeries }
                 ].filter(Boolean) as ChartSeries[]}
               />
+
+              <details>
+                <summary>More charts</summary>
+                <div style={{ display: 'grid', gap: 12, marginTop: 10 }}>
+                  <MultiLineChart
+                    title="Acceleration vs Time (m/s²)"
+                    series={[
+                      jsAccelerationSeries && { name: 'JS', color: '#2563eb', points: jsAccelerationSeries },
+                      backendAccelerationSeries && { name: 'Backend', color: '#f97316', points: backendAccelerationSeries }
+                    ].filter(Boolean) as ChartSeries[]}
+                  />
+                  <MultiLineChart
+                    title="Thrust vs Time (N)"
+                    series={[
+                      jsThrustSeries && { name: 'JS', color: '#2563eb', points: jsThrustSeries },
+                      backendThrustSeries && { name: 'Backend', color: '#f97316', points: backendThrustSeries }
+                    ].filter(Boolean) as ChartSeries[]}
+                  />
+                  <MultiLineChart
+                    title="Mass vs Time (kg)"
+                    series={[
+                      jsMassSeries && { name: 'JS', color: '#2563eb', points: jsMassSeries },
+                      backendMassSeries && { name: 'Backend', color: '#f97316', points: backendMassSeries }
+                    ].filter(Boolean) as ChartSeries[]}
+                  />
+                  <MultiLineChart
+                    title="Drag vs Time (N)"
+                    series={[
+                      jsDragSeries && { name: 'JS', color: '#2563eb', points: jsDragSeries },
+                      backendDragSeries && { name: 'Backend', color: '#f97316', points: backendDragSeries }
+                    ].filter(Boolean) as ChartSeries[]}
+                  />
+                </div>
+              </details>
 
               {backendRawJson && (
                 <details>
