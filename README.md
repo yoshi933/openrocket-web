@@ -215,6 +215,9 @@ public class SimulationBridge {
 
 ## 5. WASM ビルドと成果物
 
+> 注: このリポジトリには OpenRocket Core（`openrocket-core`）は同梱していないため、現状の `core-wasm` はスタブ実装です。  
+> まずは「ビルドが通り、Web UI から呼び出せる最小構成」を優先しています（後で OpenRocket Core を差し替え可能）。
+
 ### 5.1 ビルド手順（Java 側）
 
 ```bash
@@ -415,15 +418,18 @@ Web UI で扱いやすいように、JSON 形式で返す。
 ### 9.1 初期セットアップ
 
 ```bash
-# Java 側
-cd core-wasm
-mvn clean package
+# Java 側（スタブ WASM を生成）
+mvn -f core-wasm/pom.xml clean package
+
+# 生成物を Web UI に配置（任意。未配置でも UI はスタブで動作します）
+cp core-wasm/target/wasm/app.wasm web-ui/public/wasm/app.wasm
 
 # Web UI 側
-cd ../web-ui
-npm install
-npm start
+npm -C web-ui install
+npm -C web-ui start
 ```
+
+ブラウザで `http://localhost:5173` を開き、`Backend: wasm` / `Backend: stub` を確認して `Run Simulation` を押すと JSON が表示されます。
 
 ### 9.2 開発サイクル
 
@@ -468,4 +474,3 @@ npm start
 - Three.js 等を用いた 3D モデル表示。
 - ロケットモデルの GUI ベース編集機能（フィン形状、質量分布など）。
 - シミュレーション条件（風、気温、発射角度など）のインタラクティブな設定 UI。
-
