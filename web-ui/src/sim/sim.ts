@@ -6,7 +6,15 @@ export type SimulationInput = {
   averageThrustN: number;
   burnTimeS: number;
   gravityMS2: number;
+  /**
+   * Sea-level air density (kg/m^3).
+   * If `atmosphereScaleHeightM` is > 0, the simulator uses rho = rho0 * exp(-altitude / scaleHeight).
+   */
   airDensityKgM3: number;
+  /**
+   * Atmosphere scale height (m). Set <= 0 to disable altitude-dependent density.
+   */
+  atmosphereScaleHeightM: number;
   dtS: number;
   maxTimeS: number;
 };
@@ -25,6 +33,8 @@ export type SimulationResult = {
     altitude: number[];
     velocity: number[];
     acceleration: number[];
+    densityKgM3: number[];
+    dragN: number[];
     massKg: number[];
     thrustN: number[];
   };
@@ -39,6 +49,7 @@ export const defaultSimulationInput: SimulationInput = {
   burnTimeS: 1.5,
   gravityMS2: 9.80665,
   airDensityKgM3: 1.225,
+  atmosphereScaleHeightM: 8500,
   dtS: 0.02,
   maxTimeS: 60
 };
@@ -57,6 +68,10 @@ export function simulate1D(input: SimulationInput): SimulationResult {
   const burnTimeS = Math.max(0, input.burnTimeS);
   const gravityMS2 = input.gravityMS2 > 0 ? input.gravityMS2 : defaultSimulationInput.gravityMS2;
   const airDensityKgM3 = Math.max(0, input.airDensityKgM3);
+  const atmosphereScaleHeightM =
+    input.atmosphereScaleHeightM !== 0
+      ? input.atmosphereScaleHeightM
+      : defaultSimulationInput.atmosphereScaleHeightM;
   const dtS = input.dtS > 0 ? input.dtS : defaultSimulationInput.dtS;
   const maxTimeS = input.maxTimeS > 0 ? input.maxTimeS : defaultSimulationInput.maxTimeS;
 
@@ -67,6 +82,8 @@ export function simulate1D(input: SimulationInput): SimulationResult {
   const altitude: number[] = [];
   const velocity: number[] = [];
   const acceleration: number[] = [];
+  const densityKgM3: number[] = [];
+  const dragN: number[] = [];
   const massKg: number[] = [];
   const thrustN: number[] = [];
 
@@ -84,13 +101,19 @@ export function simulate1D(input: SimulationInput): SimulationResult {
     const remainingPropellant = propellantMassKg * (1 - burnFraction);
     const m = Math.max(dryMassKg, dryMassKg + remainingPropellant);
     const thrust = t <= burnTimeS ? averageThrustN : 0;
-    const drag = 0.5 * airDensityKgM3 * dragCoefficient * referenceAreaM2 * v * Math.abs(v);
+    const rho =
+      atmosphereScaleHeightM > 0
+        ? airDensityKgM3 * Math.exp(-Math.max(0, h) / atmosphereScaleHeightM)
+        : airDensityKgM3;
+    const drag = 0.5 * rho * dragCoefficient * referenceAreaM2 * v * Math.abs(v);
     const a = (thrust - drag - m * gravityMS2) / m;
 
     time.push(t);
     altitude.push(h);
     velocity.push(v);
     acceleration.push(a);
+    densityKgM3.push(rho);
+    dragN.push(drag);
     massKg.push(m);
     thrustN.push(thrust);
 
@@ -105,11 +128,35 @@ export function simulate1D(input: SimulationInput): SimulationResult {
       maxAcceleration = Math.abs(a);
     }
 
+    const prevT = t;
+    const prevH = h;
+    const prevV = v;
+
     v = v + a * dtS;
     h = h + v * dtS;
     t = t + dtS;
 
     if (t > 0.5 && h <= 0 && v < 0) {
+      if (prevH > 0) {
+        const denom = prevH - h;
+        const frac = denom > 0 ? clamp(prevH / denom, 0, 1) : 1;
+        const tGround = prevT + dtS * frac;
+        const vGround = prevV + (v - prevV) * frac;
+
+        time.push(tGround);
+        altitude.push(0);
+        velocity.push(vGround);
+        acceleration.push(a);
+        densityKgM3.push(rho);
+        dragN.push(drag);
+        massKg.push(m);
+        thrustN.push(thrust);
+
+        if (Math.abs(vGround) > maxVelocity) maxVelocity = Math.abs(vGround);
+        if (Math.abs(a) > maxAcceleration) maxAcceleration = Math.abs(a);
+      } else {
+        altitude[altitude.length - 1] = 0;
+      }
       break;
     }
   }
@@ -127,7 +174,7 @@ export function simulate1D(input: SimulationInput): SimulationResult {
       flightTime: time.length > 0 ? time[time.length - 1] : 0,
       apogeeTime
     },
-    timeSeries: { time, altitude, velocity, acceleration, massKg, thrustN }
+    timeSeries: { time, altitude, velocity, acceleration, densityKgM3, dragN, massKg, thrustN }
   };
 }
 
