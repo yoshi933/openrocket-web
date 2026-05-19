@@ -32,6 +32,7 @@ function App() {
   const [wasmExports, setWasmExports] = useState<SimulationExports | null>(null);
   const [input, setInput] = useState<SimulationInput>(() => tryLoadSavedInput() ?? defaultSimulationInput);
   const [inputMode, setInputMode] = useState<'form' | 'json'>('form');
+  const [activePane, setActivePane] = useState<'inputs' | 'results'>('inputs');
   const [inputJson, setInputJson] = useState<string>(() => JSON.stringify(input, null, 2));
   const [backendRawJson, setBackendRawJson] = useState<string | null>(null);
   const [backendResult, setBackendResult] = useState<SimulationResult | null>(null);
@@ -71,6 +72,7 @@ function App() {
       } catch {
         setBackendResult(null);
       }
+      setActivePane('results');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -90,36 +92,63 @@ function App() {
   const backendDragSeries = toSeries(backendResult, (ts) => ts.dragN);
 
   return (
-    <div style={{ padding: 20, display: 'grid', gap: 16 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-        <h1 style={{ margin: 0 }}>OpenRocket Web Edition (prototype)</h1>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ opacity: 0.9 }}>
+    <div className="App">
+      <header className="AppHeader">
+        <div className="AppHeader__title">
+          <h1>OpenRocket Web Edition</h1>
+          <div className="AppHeader__subtitle">Tablet-friendly prototype UI</div>
+        </div>
+
+        <div className="AppHeader__right">
+          <div className="AppHeader__tabs" role="tablist" aria-label="Pane">
+            <button
+              type="button"
+              className="TabButton"
+              role="tab"
+              aria-selected={activePane === 'inputs'}
+              onClick={() => setActivePane('inputs')}
+            >
+              Inputs
+            </button>
+            <button
+              type="button"
+              className="TabButton"
+              role="tab"
+              aria-selected={activePane === 'results'}
+              onClick={() => setActivePane('results')}
+            >
+              Results
+            </button>
+          </div>
+
+          <div className="AppHeader__status">
             Backend: <strong>{wasmExports ? wasmExports.__kind : 'loading'}</strong>
-          </span>
-          <button onClick={handleRunSimulation} disabled={!wasmExports}>
+          </div>
+
+          <button className="Primary" onClick={handleRunSimulation} disabled={!wasmExports}>
             Run Simulation
           </button>
         </div>
       </header>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(320px, 420px) 1fr', alignItems: 'start' }}>
-        <section style={panelStyle}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      {error && <p className="Error">{error}</p>}
+
+      <div className="Layout" data-active-pane={activePane}>
+        <section className="Panel Layout__inputs" aria-label="Inputs">
+          <div className="PanelHeader">
             <strong>Inputs</strong>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <div className="PanelHeader__right">
               <button
                 type="button"
                 onClick={() => setInputMode('form')}
-                style={inputMode === 'form' ? activePillButton : pillButton}
+                className={inputMode === 'form' ? 'PillButton Active' : 'PillButton'}
               >
                 Form
               </button>
               <button
                 type="button"
                 onClick={() => setInputMode('json')}
-                style={inputMode === 'json' ? activePillButton : pillButton}
+                className={inputMode === 'json' ? 'PillButton Active' : 'PillButton'}
               >
                 JSON
               </button>
@@ -129,28 +158,20 @@ function App() {
           {inputMode === 'form' ? (
             <InputForm input={input} onChange={setInput} />
           ) : (
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ opacity: 0.85 }}>Simulation input (JSON)</span>
-              <textarea
-                value={inputJson}
-                onChange={(e) => setInputJson(e.target.value)}
-                rows={14}
-                style={{
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                  fontSize: 12,
-                  padding: 10,
-                  borderRadius: 8,
-                  border: '1px solid #ddd',
-                  background: '#fff'
-                }}
-              />
+            <label className="FieldLabel">
+              <span className="FieldLabelText">Simulation input (JSON)</span>
+              <textarea value={inputJson} onChange={(e) => setInputJson(e.target.value)} rows={14} />
             </label>
           )}
         </section>
 
-        <section style={panelStyle}>
+        <section className="Panel Layout__results" aria-label="Results">
           <strong>Results</strong>
-          {!jsResult && <p style={{ opacity: 0.8, marginTop: 8 }}>Run Simulation to see charts and summary.</p>}
+          {!jsResult && (
+            <p style={{ opacity: 0.8, marginTop: 8 }}>
+              Run Simulation to see charts and summary.
+            </p>
+          )}
 
           {jsResult && (
             <div style={{ display: 'grid', gap: 12, marginTop: 10 }}>
@@ -216,6 +237,7 @@ function App() {
           )}
         </section>
       </div>
+
       {!wasmExports && <p>WASM モジュールをロード中、もしくは未設定です。</p>}
     </div>
   );
@@ -228,7 +250,7 @@ function InputForm(props: { input: SimulationInput; onChange: (next: SimulationI
   };
 
   return (
-    <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+    <div className="FormGrid">
       <Field label="Dry mass (kg)" value={input.dryMassKg} step={0.01} min={0} onChange={(v) => set('dryMassKg', v)} />
       <Field
         label="Propellant mass (kg)"
@@ -278,20 +300,14 @@ function Field(props: {
 }) {
   const { label, value, onChange, step, min } = props;
   return (
-    <label style={{ display: 'grid', gap: 4 }}>
-      <span style={{ opacity: 0.85 }}>{label}</span>
+    <label className="FieldLabel">
+      <span className="FieldLabelText">{label}</span>
       <input
         type="number"
         value={Number.isFinite(value) ? value : 0}
         step={step}
         min={min}
         onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-        style={{
-          padding: '8px 10px',
-          borderRadius: 8,
-          border: '1px solid #ddd',
-          background: '#fff'
-        }}
       />
     </label>
   );
@@ -305,9 +321,13 @@ function SummaryGrid(props: { jsResult: SimulationResult; backendResult: Simulat
       : null;
 
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(120px, 1fr))', gap: 10 }}>
-        <Stat label="Max altitude" value={`${jsResult.summary.maxAltitude.toFixed(1)} m`} sub={diff !== null ? `Δ backend ${diff.toFixed(2)} m` : undefined} />
+    <div className="Summary">
+      <div className="SummaryStats">
+        <Stat
+          label="Max altitude"
+          value={`${jsResult.summary.maxAltitude.toFixed(1)} m`}
+          sub={diff !== null ? `Δ backend ${diff.toFixed(2)} m` : undefined}
+        />
         <Stat label="Max velocity" value={`${jsResult.summary.maxVelocity.toFixed(1)} m/s`} />
         <Stat label="Max accel" value={`${jsResult.summary.maxAcceleration.toFixed(1)} m/s²`} />
         <Stat label="Flight time" value={`${jsResult.summary.flightTime.toFixed(2)} s`} />
@@ -324,10 +344,10 @@ function SummaryGrid(props: { jsResult: SimulationResult; backendResult: Simulat
 function Stat(props: { label: string; value: string; sub?: string }) {
   const { label, value, sub } = props;
   return (
-    <div style={{ padding: 10, border: '1px solid #eee', borderRadius: 10, background: '#fafafa' }}>
-      <div style={{ fontSize: 12, opacity: 0.75 }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 600 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, opacity: 0.75 }}>{sub}</div>}
+    <div className="StatCard">
+      <div className="StatCard__label">{label}</div>
+      <div className="StatCard__value">{value}</div>
+      {sub && <div className="StatCard__sub">{sub}</div>}
     </div>
   );
 }
@@ -361,7 +381,7 @@ function MultiLineChart(props: { series: ChartSeries[]; title: string }) {
     <svg
       width="100%"
       viewBox={`0 0 ${width} ${height}`}
-      style={{ border: '1px solid #ddd', borderRadius: 6, background: '#fff' }}
+      className="Chart"
       role="img"
       aria-label={title}
     >
@@ -401,25 +421,5 @@ function toSeries(
   const ys = getY(ts);
   return ts.time.map((t, i) => ({ x: t, y: ys[i] ?? 0 }));
 }
-
-const panelStyle: React.CSSProperties = {
-  border: '1px solid #e6e6e6',
-  borderRadius: 12,
-  padding: 14,
-  background: '#fff'
-};
-
-const pillButton: React.CSSProperties = {
-  padding: '6px 10px',
-  borderRadius: 999,
-  border: '1px solid #ddd',
-  background: '#fff'
-};
-
-const activePillButton: React.CSSProperties = {
-  ...pillButton,
-  borderColor: '#2563eb',
-  background: '#eff6ff'
-};
 
 export default App;
